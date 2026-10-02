@@ -57,7 +57,7 @@ function Gauge([string]$Icon, [string]$Label, $Pct, $ResetsAt) {
     }
     $Bar += $Reset
     $Alert = if ($P -ge 80) { "$Color$IcoAlert$Reset " } else { '' }
-    $Line = "$Icon $($Label.PadRight(3)) $Alert$Bar $Color$P%$Reset"
+    $Line = "$Color$Icon$Reset $($Label.PadRight(3)) $Alert$Bar $Color$P%$Reset"
     if ($ResetsAt) {
         $Left = [DateTimeOffset]::FromUnixTimeSeconds([long]$ResetsAt) - [DateTimeOffset]::UtcNow
         if ($Left.TotalSeconds -gt 0) {
@@ -72,7 +72,7 @@ function Gauge([string]$Icon, [string]$Label, $Pct, $ResetsAt) {
 # Line 1: model . effort | dir | branch | worktree
 $Parts = @()
 if ($Data.model.display_name) {
-    $Model = "$IcoModel $Esc[1m$($Data.model.display_name)$Reset"
+    $Model = "$Esc[35m$IcoModel$Reset $Esc[1m$($Data.model.display_name)$Reset"
     if ($Data.effort.level) { $Model += " $Dim$Dot$Reset $Esc[35m$($Data.effort.level)$Reset" }
     $Parts += $Model
 }
@@ -81,7 +81,7 @@ $Dir = if ($Data.workspace.current_dir) { $Data.workspace.current_dir } else { $
 if ($Dir) {
     $Leaf = Split-Path -Path $Dir -Leaf
     if (-not $Leaf) { $Leaf = $Dir }
-    $Parts += "$IcoDir $Esc[38;2;97;175;239m$Leaf$Reset"
+    $Parts += "$Esc[38;2;97;175;239m$IcoDir $Leaf$Reset"
 
     $Git = @('-c', 'core.fsmonitor=false', '-C', $Dir, '--no-optional-locks')
     $Branch = git @Git rev-parse --abbrev-ref HEAD 2>$null
@@ -90,12 +90,12 @@ if ($Dir) {
         $Label = $Branch.Trim()
         $ChangedCount = (git @Git status --porcelain 2>$null | Where-Object { $_ -ne '' } | Measure-Object).Count
         if ($ChangedCount -gt 0) { $Label = "$Label $Cross$ChangedCount" }
-        $Parts += "$IcoGit $Esc[32m$Label$Reset"
+        $Parts += "$Esc[32m$IcoGit $Label$Reset"
     }
 }
 
 $Tree = if ($Data.worktree.name) { $Data.worktree.name } else { $Data.workspace.git_worktree }
-if ($Tree) { $Parts += "$IcoTree $Esc[36m$Tree$Reset" }
+if ($Tree) { $Parts += "$Esc[36m$IcoTree $Tree$Reset" }
 
 $Lines = @()
 if ($Parts.Count -gt 0) { $Lines += $Parts -join $Sep }

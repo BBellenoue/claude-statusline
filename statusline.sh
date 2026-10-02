@@ -48,7 +48,7 @@ gauge() {
     if [[ $cell != "$prev" ]]; then bar+="${E}[38;2;${cell}m"; prev=$cell; fi
     bar+='◼'
   done
-  line="$1 $(printf '%-3s' "$2") $( ((p >= 80)) && printf '%s▲%s ' "${E}[38;2;${rgb}m" "$R")$bar$R ${E}[38;2;${rgb}m$p%$R"
+  line="${E}[38;2;${rgb}m$1$R $(printf '%-3s' "$2") $( ((p >= 80)) && printf '%s▲%s ' "${E}[38;2;${rgb}m" "$R")$bar$R ${E}[38;2;${rgb}m$p%$R"
   if [[ -n $left ]] && ((left > 0)); then
     if ((left >= 86400)); then line+=" $DIM$DOT $((left / 86400))d$((left % 86400 / 3600))h$R"
     else line+=" $DIM$DOT $(printf '%dh%02d' $((left / 3600)) $((left % 3600 / 60)))$R"; fi
@@ -61,23 +61,23 @@ join() { local IFS=$'\x1f' out; out="$*"; printf '%s' "${out//$'\x1f'/$SEP}"; }
 # Line 1: model . effort | dir | branch | worktree
 parts=()
 if [[ -n $model ]]; then
-  m="◆ ${E}[1m$model$R"
+  m="${E}[35m◆$R ${E}[1m$model$R"
   [[ -n $effort ]] && m+=" $DIM$DOT$R ${E}[35m$effort$R"
   parts+=("$m")
 fi
 if [[ -n $dir ]]; then
   leaf=${dir//\\//}; leaf=${leaf%/}; leaf=${leaf##*/}
-  parts+=("⌂ ${E}[38;2;97;175;239m${leaf:-$dir}$R")
+  parts+=("${E}[38;2;97;175;239m⌂ ${leaf:-$dir}$R")
   git=(git -c core.fsmonitor=false -C "$dir" --no-optional-locks)
   branch=$("${git[@]}" rev-parse --abbrev-ref HEAD 2>/dev/null) ||
     branch=$("${git[@]}" symbolic-ref --short HEAD 2>/dev/null)
   if [[ -n $branch ]]; then
     changed=$("${git[@]}" status --porcelain 2>/dev/null | grep -c .)
     ((changed > 0)) && branch+=" ✚$changed"
-    parts+=("⎇ ${E}[32m$branch$R")
+    parts+=("${E}[32m⎇ $branch$R")
   fi
 fi
-[[ -n $tree ]] && parts+=("⑂ ${E}[36m$tree$R")
+[[ -n $tree ]] && parts+=("${E}[36m⑂ $tree$R")
 lines=()
 ((${#parts[@]})) && lines+=("$(join "${parts[@]}")")
 

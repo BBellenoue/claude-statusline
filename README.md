@@ -11,7 +11,8 @@ context window, session stats and your 5-hour / 7-day usage limits, with colored
 *Real output of `statusline.sh` in a mock terminal window. The project, branch, conversation and numbers are made up.*
 
 Each bar runs green, yellow, red along its length (squares 1 to 6, 7 to 9, 10 to 12). The
-percentage is green below 50 %, yellow below 80 %, red above, with a red `▲` from 80 %. The two limit
+percentage is green below 50 %, yellow below 80 %, red above, with a red `▲` from 80 %. Each icon is colored like what it introduces: the folder
+blue, the branch green, a gauge icon in the color of its level. The two limit
 lines only show up on a claude.ai subscription, once Claude Code has received its first reply in the
 session. A field your Claude Code version does not send is simply left out. `NO_COLOR` is honored.
 
