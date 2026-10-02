@@ -11,14 +11,16 @@ context window, session stats and your 5-hour / 7-day usage limits, with colored
 *Real output of `statusline.sh` in a mock terminal window. The project, branch, conversation and numbers are made up.*
 
 Each bar runs green, yellow, red along its length (squares 1 to 6, 7 to 9, 10 to 12). The
-percentage is green below 50 %, yellow below 80 %, red above, with a skull from 80 %. The two limit
+percentage is green below 50 %, yellow below 80 %, red above, with a red `▲` from 80 %. Each icon is colored like what it introduces: the folder
+blue, the branch green, a gauge icon in the color of its level. The two limit
 lines only show up on a claude.ai subscription, once Claude Code has received its first reply in the
 session. A field your Claude Code version does not send is simply left out. `NO_COLOR` is honored.
 
 ## Requirements
 
 - Claude Code with `statusLine` command support.
-- A terminal with 24-bit color and a font that has emoji and the `◼` square (U+25FC).
+- A terminal with 24-bit color and a font that has the symbols the status line draws with
+  (`◼ ◆ ◑ ◔ ◷ ▦ ▲ ⌂ ⎇ ⑂`). Most terminals fall back to another font for a missing one.
 - One of: bash 3.2+ with `jq`, or PowerShell 7+. `git` is optional: without it, or outside a
   repository, the branch is left out.
 
@@ -67,9 +69,10 @@ both scripts in `SHA256SUMS`; compare it with `shasum -a 256 ~/.claude/statuslin
   PowerShell script.
 - **To see what the script prints**, run it by hand on the sample input of this repository:
   `bash ~/.claude/statusline.sh < test.json`.
-- **No limit lines (⏳ and 📅)**: they need a claude.ai subscription and show up after the first reply
+- **No limit lines (`◷` and `▦`)**: they need a claude.ai subscription and show up after the first reply
   of the session.
-- **The squares look like emoji or empty boxes**: your terminal font lacks `◼`. Pick a font that has it.
+- **Icons or squares show as empty boxes**: your terminal font lacks one of the symbols listed under
+  Requirements. Pick a font with wide Unicode coverage.
 - **Raw escape codes, or wrong colors**: the terminal has no 24-bit color. Switch the colors off with
   `"command": "NO_COLOR=1 ~/.claude/statusline.sh"`.
 - **No branch**: the folder is not a git repository, or `git` is not installed.

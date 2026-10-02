@@ -4,30 +4,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 
 ## [Unreleased]
 
-### Added
-- CI refuses an AI attribution (a co-author trailer, a "generated with" line) in commit messages and in
-  the pull request title and body.
-
-### Changed
-- The README screenshot is the real output of the script inside a mock terminal window.
-
-## [0.1.0] - 2026-10-02
+## [1.0.0] - 2026-10-02
 
 ### Added
 - Four-line status line for Claude Code: model and effort, folder, git branch and changed files,
   worktree, context window, session lines and duration, 5-hour and 7-day usage limits.
 - Two scripts with the same output: `statusline.sh` (bash 3.2+, `jq`) and `statusline.ps1` (PowerShell 7+).
-- Bars of 12 medium squares colored by position (green, yellow, red) with the percentage colored by
-  level and a skull from 80 %.
+- Technical icons, one cell wide, colored like what they introduce: the folder blue, the branch green,
+  a gauge icon in the color of its level.
+- Bars of 12 medium squares colored by position (green, yellow, red). The percentage is colored by
+  level and a red `▲` marks 80 % and above.
 - `NO_COLOR` support.
-- Tests: 18 cases rendered with both scripts and compared with golden files, PSScriptAnalyzer,
-  ShellCheck, and a check that a repository's `core.fsmonitor` hook is never run.
+- Tests: 18 cases rendered with both scripts and compared with golden files, ShellCheck,
+  PSScriptAnalyzer, a check that a repository's `core.fsmonitor` hook is never run, and a check that
+  commit messages and pull request text carry no AI attribution.
 
-### Fixed
-- The branch is shown in a repository that has no commit yet.
-- A mistyped field only drops itself, not the fields after it.
-- PowerShell rounds, formats numbers and shows zero values like bash.
-- `statusline.sh` reports a missing `jq` instead of printing nothing.
-
-[Unreleased]: https://github.com/BBellenoue/claude-statusline/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/BBellenoue/claude-statusline/releases/tag/v0.1.0
+[Unreleased]: https://github.com/BBellenoue/claude-statusline/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/BBellenoue/claude-statusline/releases/tag/v1.0.0
