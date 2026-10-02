@@ -6,7 +6,9 @@
 A four-line status line for [Claude Code](https://code.claude.com): model, folder, git,
 context window, session stats and your 5-hour / 7-day usage limits, with colored gauges.
 
-![The four lines of the status line: model, folder and git branch, context window, 5-hour and 7-day usage gauges](docs/statusline.svg)
+![A terminal window: a short Claude Code exchange above the four-line status line with model, folder and git branch, context window, 5-hour and 7-day usage gauges](docs/statusline.svg)
+
+*Real output of `statusline.sh` in a mock terminal window. The project, branch, conversation and numbers are made up.*
 
 Each bar runs green, yellow, red along its length (squares 1 to 6, 7 to 9, 10 to 12). The
 percentage is green below 50 %, yellow below 80 %, red above, with a skull from 80 %. The two limit
