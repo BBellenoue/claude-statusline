@@ -3,7 +3,7 @@
 #   2. context used   [bar] % . tokens / size | session lines +/- | session duration
 #   3. 5-hour limit   [bar] % . resets in
 #   4. 7-day limit    [bar] % . resets in
-# Bar cells: 1-6 green, 7-9 yellow, 10-12 red. Percentage: green < 50 %, yellow < 80 %, red above (+ skull).
+# Bar cells: 1-6 green, 7-9 yellow, 10-12 red. Percentage: green < 50 %, yellow < 80 %, red above (+ alert mark).
 # Lines 3 and 4 only appear once Claude Code sends rate_limits (claude.ai subscription, after the 1st reply).
 # Requires PowerShell 7+ (Windows, Linux, macOS).
 
@@ -19,16 +19,15 @@ $Reset = "$Esc[0m"
 $Dim = "$Esc[2m"
 $Dot = [char]0x00B7
 $Cross = [char]0x271A
-function Emoji([int]$cp) { [char]::ConvertFromUtf32($cp) }
-$IcoModel = Emoji 0x1F916   # robot
-$IcoDir = Emoji 0x1F4C1     # folder
-$IcoGit = Emoji 0x1F33F     # herb
-$IcoCtx = Emoji 0x1F9E0     # brain
-$IcoFive = Emoji 0x23F3     # hourglass
-$IcoWeek = Emoji 0x1F4C5    # calendar
-$IcoSkull = Emoji 0x1F480   # skull
-$IcoTree = Emoji 0x1F333    # tree (worktree)
-$IcoTime = Emoji 0x23F1     # stopwatch
+$IcoModel = [char]0x25C6    # diamond
+$IcoDir = [char]0x2302      # house
+$IcoGit = [char]0x2387      # branch
+$IcoCtx = [char]0x25D1      # half disc
+$IcoFive = [char]0x25F7     # clock face
+$IcoWeek = [char]0x25A6     # grid
+$IcoAlert = [char]0x25B2    # triangle
+$IcoTree = [char]0x2442     # fork (worktree)
+$IcoTime = [char]0x25D4     # quarter disc
 $Sep = " $Esc[90m$([char]0x2502)$Reset "
 
 $Inv = [cultureinfo]::InvariantCulture
@@ -57,8 +56,8 @@ function Gauge([string]$Icon, [string]$Label, $Pct, $ResetsAt) {
         $Bar += $Sq
     }
     $Bar += $Reset
-    $Skull = if ($P -ge 80) { "$IcoSkull " } else { '' }
-    $Line = "$Icon $($Label.PadRight(3)) $Skull$Bar $Color$P%$Reset"
+    $Alert = if ($P -ge 80) { "$Color$IcoAlert$Reset " } else { '' }
+    $Line = "$Icon $($Label.PadRight(3)) $Alert$Bar $Color$P%$Reset"
     if ($ResetsAt) {
         $Left = [DateTimeOffset]::FromUnixTimeSeconds([long]$ResetsAt) - [DateTimeOffset]::UtcNow
         if ($Left.TotalSeconds -gt 0) {

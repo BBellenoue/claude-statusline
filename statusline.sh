@@ -48,7 +48,7 @@ gauge() {
     if [[ $cell != "$prev" ]]; then bar+="${E}[38;2;${cell}m"; prev=$cell; fi
     bar+='◼'
   done
-  line="$1 $(printf '%-3s' "$2") $( ((p >= 80)) && printf '💀 ')$bar$R ${E}[38;2;${rgb}m$p%$R"
+  line="$1 $(printf '%-3s' "$2") $( ((p >= 80)) && printf '%s▲%s ' "${E}[38;2;${rgb}m" "$R")$bar$R ${E}[38;2;${rgb}m$p%$R"
   if [[ -n $left ]] && ((left > 0)); then
     if ((left >= 86400)); then line+=" $DIM$DOT $((left / 86400))d$((left % 86400 / 3600))h$R"
     else line+=" $DIM$DOT $(printf '%dh%02d' $((left / 3600)) $((left % 3600 / 60)))$R"; fi
@@ -61,41 +61,41 @@ join() { local IFS=$'\x1f' out; out="$*"; printf '%s' "${out//$'\x1f'/$SEP}"; }
 # Line 1: model . effort | dir | branch | worktree
 parts=()
 if [[ -n $model ]]; then
-  m="🤖 ${E}[1m$model$R"
+  m="◆ ${E}[1m$model$R"
   [[ -n $effort ]] && m+=" $DIM$DOT$R ${E}[35m$effort$R"
   parts+=("$m")
 fi
 if [[ -n $dir ]]; then
   leaf=${dir//\\//}; leaf=${leaf%/}; leaf=${leaf##*/}
-  parts+=("📁 ${E}[38;2;97;175;239m${leaf:-$dir}$R")
+  parts+=("⌂ ${E}[38;2;97;175;239m${leaf:-$dir}$R")
   git=(git -c core.fsmonitor=false -C "$dir" --no-optional-locks)
   branch=$("${git[@]}" rev-parse --abbrev-ref HEAD 2>/dev/null) ||
     branch=$("${git[@]}" symbolic-ref --short HEAD 2>/dev/null)
   if [[ -n $branch ]]; then
     changed=$("${git[@]}" status --porcelain 2>/dev/null | grep -c .)
     ((changed > 0)) && branch+=" ✚$changed"
-    parts+=("🌿 ${E}[32m$branch$R")
+    parts+=("⎇ ${E}[32m$branch$R")
   fi
 fi
-[[ -n $tree ]] && parts+=("🌳 ${E}[36m$tree$R")
+[[ -n $tree ]] && parts+=("⑂ ${E}[36m$tree$R")
 lines=()
 ((${#parts[@]})) && lines+=("$(join "${parts[@]}")")
 
 # Line 2: context gauge + tokens | lines changed | duration
 if [[ -n $ctx ]]; then
-  c=$(gauge 🧠 ctx "$ctx")
+  c=$(gauge ◑ ctx "$ctx")
   [[ -n $tokens ]] && c+=" $DIM$DOT $tokens$R"
   extra=("$c")
   ((added || removed)) && extra+=("${E}[32m+$added$R ${E}[31m-$removed$R")
   if [[ -n $mins ]]; then
-    if ((mins >= 60)); then extra+=("⏱ $(printf '%dh%02d' $((mins / 60)) $((mins % 60)))"); else extra+=("⏱ ${mins}m"); fi
+    if ((mins >= 60)); then extra+=("◔ $(printf '%dh%02d' $((mins / 60)) $((mins % 60)))"); else extra+=("◔ ${mins}m"); fi
   fi
   lines+=("$(join "${extra[@]}")")
 fi
 
 # Lines 3 and 4: usage limits
-[[ -n $five ]] && lines+=("$(gauge ⏳ 5h "$five" "$five_left")")
-[[ -n $week ]] && lines+=("$(gauge 📅 7d "$week" "$week_left")")
+[[ -n $five ]] && lines+=("$(gauge ◷ 5h "$five" "$five_left")")
+[[ -n $week ]] && lines+=("$(gauge ▦ 7d "$week" "$week_left")")
 
 out=$(printf '%s\n' "${lines[@]}")
 [[ -n ${NO_COLOR:-} ]] && out=${out//$'\e'\[*([0-9;])m/}
