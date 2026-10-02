@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Actions pinned to a commit; the comment carries the tag Dependabot tracks.
+jobs:
+  check:
+    name: Lint and render (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: ShellCheck
+        if: runner.os == 'Linux'
+        run: shellcheck statusline.sh
+
+      # Same input, same output; line 1 is skipped, it depends on the checkout folder.
+      - name: Render
+        run: |
+          bash statusline.sh < test.json > sh.out
+          pwsh -NoProfile -File statusline.ps1 < test.json > ps.out
+          cat sh.out; echo; cat ps.out; echo
+          diff <(tail -n +2 sh.out) <(tail -n +2 ps.out)
+          grep -q '43%' sh.out && grep -q '7d' sh.out && [ "$(wc -l < sh.out)" -eq 3 ]
