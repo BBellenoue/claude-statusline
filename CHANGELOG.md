@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 
 ## [Unreleased]
 
+### Changed
+- The README screenshot is the real output of the script inside a mock terminal window.
+
 ## [0.1.0] - 2026-10-02
 
 ### Added
