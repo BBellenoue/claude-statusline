@@ -71,6 +71,7 @@ if ($Dir) {
     $Parts += "$IcoDir $Esc[34m$Leaf$Reset"
 
     $Branch = git -C "$Dir" --no-optional-locks rev-parse --abbrev-ref HEAD 2>$null
+    if ($LASTEXITCODE -ne 0) { $Branch = git -C "$Dir" --no-optional-locks symbolic-ref --short HEAD 2>$null }
     if ($LASTEXITCODE -eq 0 -and $Branch) {
         $Label = $Branch.Trim()
         $ChangedCount = (git -C "$Dir" --no-optional-locks status --porcelain 2>$null | Where-Object { $_ -ne '' } | Measure-Object).Count
