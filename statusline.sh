@@ -9,6 +9,8 @@
 
 command -v jq >/dev/null 2>&1 || { printf 'claude-statusline: jq not found (https://jqlang.github.io/jq/)'; exit 0; }
 
+shopt -s extglob
+
 E=$'\e'; R="${E}[0m"; DIM="${E}[2m"; DOT='·'
 SEP=" ${E}[90m│$R "
 
@@ -96,5 +98,5 @@ fi
 [[ -n $week ]] && lines+=("$(gauge 📅 7d "$week" "$week_left")")
 
 out=$(printf '%s\n' "${lines[@]}")
-[[ -n ${NO_COLOR:-} ]] && out=$(sed $'s/\x1b\\[[0-9;]*m//g' <<<"$out")
+[[ -n ${NO_COLOR:-} ]] && out=${out//$'\e'\[*([0-9;])m/}
 printf '%s' "$out"
