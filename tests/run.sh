@@ -38,4 +38,12 @@ unset NO_COLOR
 out=$(PATH=/nonexistent "$(command -v bash)" statusline.sh <<<'{}')
 [[ $out == *'jq not found'* ]] || { echo 'FAIL: no hint when jq is missing'; fail=1; }
 
+guard=scripts/check-commit-messages.sh
+printf 'Fix a thing\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n' | bash "$guard" >/dev/null 2>&1 &&
+  { echo 'FAIL: a co-author trailer naming an AI was accepted'; fail=1; }
+printf 'Fix a thing\n\nGenerated with [Claude Code](https://claude.com/claude-code)\n' | bash "$guard" >/dev/null 2>&1 &&
+  { echo 'FAIL: a "generated with" line was accepted'; fail=1; }
+printf 'Four-line status line for Claude Code\n\nCo-authored-by: Jane Doe <jane@example.com>\n' | bash "$guard" >/dev/null 2>&1 ||
+  { echo 'FAIL: the product name or a human co-author was rejected'; fail=1; }
+
 exit $fail
