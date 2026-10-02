@@ -12,7 +12,7 @@ $ErrorActionPreference = 'SilentlyContinue'
 
 $RawInput = [Console]::In.ReadToEnd()
 $Data = $null
-try { $Data = $RawInput | ConvertFrom-Json } catch { }
+try { $Data = $RawInput | ConvertFrom-Json } catch { $Data = $null }
 
 $Esc = [char]27
 $Reset = "$Esc[0m"
@@ -31,15 +31,22 @@ $IcoTree = Emoji 0x1F333    # tree (worktree)
 $IcoTime = Emoji 0x23F1     # stopwatch
 $Sep = " $Esc[90m$([char]0x2502)$Reset "
 
-function Tok($n) { if ($n -ge 1e6) { '{0:0.#}M' -f ($n / 1e6) } elseif ($n -ge 1e3) { '{0:0}k' -f ($n / 1e3) } else { "$n" } }
+$Inv = [cultureinfo]::InvariantCulture
+function RoundHalfUp([double]$N) { [math]::Round($N, [MidpointRounding]::AwayFromZero) }
+function Tok($n) {
+    $n = [double]$n
+    if ($n -ge 1e6) { ((RoundHalfUp ($n / 1e5)) / 10).ToString('0.#', $Inv) + 'M' }
+    elseif ($n -ge 1e3) { (RoundHalfUp ($n / 1e3)).ToString($Inv) + 'k' }
+    else { $n.ToString($Inv) }
+}
 
 # Bar of medium squares (U+25FC): filled cells green, yellow, red by position, empty ones navy
 function Gauge([string]$Icon, [string]$Label, $Pct, $ResetsAt) {
-    $P = [math]::Max(0, [math]::Min(100, [math]::Round([double]$Pct)))
+    $P = [math]::Max(0, [math]::Min(100, (RoundHalfUp ([double]$Pct))))
     $Rgb = if ($P -ge 80) { '229;83;75' } elseif ($P -ge 50) { '230;180;60' } else { '63;185;122' }
     $Color = "$Esc[38;2;${Rgb}m"
     $Width = 12
-    $Filled = [math]::Round($P / 100 * $Width)
+    $Filled = [int][math]::Floor(($P * $Width + 50) / 100)
     if ($P -gt 0 -and $Filled -eq 0) { $Filled = 1 }
     $Sq = [string][char]0x25FC
     $Bar = ''
@@ -77,11 +84,12 @@ if ($Dir) {
     if (-not $Leaf) { $Leaf = $Dir }
     $Parts += "$IcoDir $Esc[38;2;97;175;239m$Leaf$Reset"
 
-    $Branch = git -C "$Dir" --no-optional-locks rev-parse --abbrev-ref HEAD 2>$null
-    if ($LASTEXITCODE -ne 0) { $Branch = git -C "$Dir" --no-optional-locks symbolic-ref --short HEAD 2>$null }
+    $Git = @('-c', 'core.fsmonitor=false', '-C', $Dir, '--no-optional-locks')
+    $Branch = git @Git rev-parse --abbrev-ref HEAD 2>$null
+    if ($LASTEXITCODE -ne 0) { $Branch = git @Git symbolic-ref --short HEAD 2>$null }
     if ($LASTEXITCODE -eq 0 -and $Branch) {
         $Label = $Branch.Trim()
-        $ChangedCount = (git -C "$Dir" --no-optional-locks status --porcelain 2>$null | Where-Object { $_ -ne '' } | Measure-Object).Count
+        $ChangedCount = (git @Git status --porcelain 2>$null | Where-Object { $_ -ne '' } | Measure-Object).Count
         if ($ChangedCount -gt 0) { $Label = "$Label $Cross$ChangedCount" }
         $Parts += "$IcoGit $Esc[32m$Label$Reset"
     }
@@ -90,21 +98,24 @@ if ($Dir) {
 $Tree = if ($Data.worktree.name) { $Data.worktree.name } else { $Data.workspace.git_worktree }
 if ($Tree) { $Parts += "$IcoTree $Esc[36m$Tree$Reset" }
 
-$Lines = @($Parts -join $Sep)
+$Lines = @()
+if ($Parts.Count -gt 0) { $Lines += $Parts -join $Sep }
 
 # Line 2: context gauge + tokens | lines changed | duration
 $Cw = $Data.context_window
 if ($null -ne $Cw.used_percentage) {
     $Ctx = Gauge $IcoCtx 'ctx' $Cw.used_percentage $null
-    if ($Cw.total_input_tokens -and $Cw.context_window_size) { $Ctx += " $Dim$Dot $(Tok $Cw.total_input_tokens)/$(Tok $Cw.context_window_size)$Reset" }
+    if ($null -ne $Cw.total_input_tokens -and $null -ne $Cw.context_window_size) { $Ctx += " $Dim$Dot $(Tok $Cw.total_input_tokens)/$(Tok $Cw.context_window_size)$Reset" }
     $Extra = @($Ctx)
     $Cost = $Data.cost
-    if ($Cost.total_lines_added -or $Cost.total_lines_removed) {
-        $Extra += "$Esc[32m+$([int]$Cost.total_lines_added)$Reset $Esc[31m-$([int]$Cost.total_lines_removed)$Reset"
+    $Added = [int][math]::Floor([double]($Cost.total_lines_added ?? 0))
+    $Removed = [int][math]::Floor([double]($Cost.total_lines_removed ?? 0))
+    if ($Added -or $Removed) {
+        $Extra += "$Esc[32m+$Added$Reset $Esc[31m-$Removed$Reset"
     }
-    if ($Cost.total_duration_ms) {
-        $D = [TimeSpan]::FromMilliseconds($Cost.total_duration_ms)
-        $Extra += "$IcoTime " + $(if ($D.TotalHours -ge 1) { '{0}h{1:00}' -f [int][math]::Floor($D.TotalHours), $D.Minutes } else { '{0}m' -f [int][math]::Floor($D.TotalMinutes) })
+    if ($null -ne $Cost.total_duration_ms) {
+        $Mins = [int][math]::Floor([double]$Cost.total_duration_ms / 60000)
+        $Extra += "$IcoTime " + $(if ($Mins -ge 60) { '{0}h{1:00}' -f [int][math]::Floor($Mins / 60), ($Mins % 60) } else { "${Mins}m" })
     }
     $Lines += $Extra -join $Sep
 }
@@ -114,4 +125,6 @@ $Rl = $Data.rate_limits
 if ($null -ne $Rl.five_hour.used_percentage) { $Lines += Gauge $IcoFive '5h' $Rl.five_hour.used_percentage $Rl.five_hour.resets_at }
 if ($null -ne $Rl.seven_day.used_percentage) { $Lines += Gauge $IcoWeek '7d' $Rl.seven_day.used_percentage $Rl.seven_day.resets_at }
 
-[Console]::Write($Lines -join "`n")
+$Out = $Lines -join "`n"
+if ($env:NO_COLOR) { $Out = $Out -replace "$Esc\[[0-9;]*m", '' }
+[Console]::Write($Out)
