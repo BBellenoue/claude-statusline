@@ -7,27 +7,34 @@
 #   4. 7-day limit    [bar] % . resets in
 # Requires bash 3.2+ and jq (Linux, macOS, Git Bash on Windows).
 
+command -v jq >/dev/null 2>&1 || { printf 'claude-statusline: jq not found (https://jqlang.github.io/jq/)'; exit 0; }
+
+shopt -s extglob
+
 E=$'\e'; R="${E}[0m"; DIM="${E}[2m"; DOT='·'
 SEP=" ${E}[90m│$R "
 
-# One jq pass: every field becomes a shell variable, empty when absent.
+# One jq pass: every field becomes a shell variable, empty when absent or unusable.
 eval "$(jq -r '
   def tok: if . >= 1e6 then "\((. / 1e5 | round) / 10)M" elif . >= 1e3 then "\(. / 1e3 | round)k" else "\(.)" end;
+  def n: try tonumber catch null;
   def opt(f): if . == null then "" else f end;
-  @sh "model=\(.model.display_name // "")",
-  @sh "effort=\(.effort.level // "")",
-  @sh "dir=\(.workspace.current_dir // .cwd // "")",
-  @sh "tree=\(.worktree.name // .workspace.git_worktree // "")",
-  @sh "ctx=\(.context_window.used_percentage | opt(round))",
-  @sh "tokens=\(if .context_window.total_input_tokens and .context_window.context_window_size
-                then "\(.context_window.total_input_tokens | tok)/\(.context_window.context_window_size | tok)" else "" end)",
-  @sh "added=\(.cost.total_lines_added // 0 | floor)",
-  @sh "removed=\(.cost.total_lines_removed // 0 | floor)",
-  @sh "mins=\(.cost.total_duration_ms | opt(. / 60000 | floor))",
-  @sh "five=\(.rate_limits.five_hour.used_percentage | opt(round))",
-  @sh "five_left=\(.rate_limits.five_hour.resets_at | opt(. - now | floor))",
-  @sh "week=\(.rate_limits.seven_day.used_percentage | opt(round))",
-  @sh "week_left=\(.rate_limits.seven_day.resets_at | opt(. - now | floor))"
+  def first_set: map(select(. != null and . != "")) | .[0] // "";
+  def v(k; f): try (k + "=" + (f | @sh)) catch "";
+  v("model"; .model.display_name // ""),
+  v("effort"; .effort.level // ""),
+  v("dir"; [.workspace.current_dir, .cwd] | first_set),
+  v("tree"; [.worktree.name, .workspace.git_worktree] | first_set),
+  v("ctx"; .context_window.used_percentage | n | opt(round)),
+  v("tokens"; (.context_window.total_input_tokens | n) as $u | (.context_window.context_window_size | n) as $z
+              | if $u != null and $z != null then "\($u | tok)/\($z | tok)" else "" end),
+  v("added"; (.cost.total_lines_added | n) // 0 | floor),
+  v("removed"; (.cost.total_lines_removed | n) // 0 | floor),
+  v("mins"; .cost.total_duration_ms | n | opt(. / 60000 | floor)),
+  v("five"; .rate_limits.five_hour.used_percentage | n | opt(round)),
+  v("five_left"; .rate_limits.five_hour.resets_at | n | opt(. - now | floor)),
+  v("week"; .rate_limits.seven_day.used_percentage | n | opt(round)),
+  v("week_left"; .rate_limits.seven_day.resets_at | n | opt(. - now | floor))
 ' 2>/dev/null)"
 
 # gauge ICON LABEL PCT [SECONDS_LEFT]
@@ -61,16 +68,18 @@ fi
 if [[ -n $dir ]]; then
   leaf=${dir//\\//}; leaf=${leaf%/}; leaf=${leaf##*/}
   parts+=("📁 ${E}[38;2;97;175;239m${leaf:-$dir}$R")
-  branch=$(git -C "$dir" --no-optional-locks rev-parse --abbrev-ref HEAD 2>/dev/null) ||
-    branch=$(git -C "$dir" --no-optional-locks symbolic-ref --short HEAD 2>/dev/null)
+  git=(git -c core.fsmonitor=false -C "$dir" --no-optional-locks)
+  branch=$("${git[@]}" rev-parse --abbrev-ref HEAD 2>/dev/null) ||
+    branch=$("${git[@]}" symbolic-ref --short HEAD 2>/dev/null)
   if [[ -n $branch ]]; then
-    changed=$(git -C "$dir" --no-optional-locks status --porcelain 2>/dev/null | grep -c .)
+    changed=$("${git[@]}" status --porcelain 2>/dev/null | grep -c .)
     ((changed > 0)) && branch+=" ✚$changed"
     parts+=("🌿 ${E}[32m$branch$R")
   fi
 fi
 [[ -n $tree ]] && parts+=("🌳 ${E}[36m$tree$R")
-lines=("$(join "${parts[@]}")")
+lines=()
+((${#parts[@]})) && lines+=("$(join "${parts[@]}")")
 
 # Line 2: context gauge + tokens | lines changed | duration
 if [[ -n $ctx ]]; then
@@ -89,4 +98,5 @@ fi
 [[ -n $week ]] && lines+=("$(gauge 📅 7d "$week" "$week_left")")
 
 out=$(printf '%s\n' "${lines[@]}")
+[[ -n ${NO_COLOR:-} ]] && out=${out//$'\e'\[*([0-9;])m/}
 printf '%s' "$out"
