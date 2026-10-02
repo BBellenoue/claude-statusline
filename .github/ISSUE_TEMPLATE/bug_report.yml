@@ -1,0 +1,37 @@
+name: Bug report
+description: The status line is empty, wrong or garbled
+labels: [bug]
+body:
+  - type: textarea
+    id: seen
+    attributes:
+      label: What you see
+      description: Paste the status line, or describe what is missing or wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: dropdown
+    id: script
+    attributes:
+      label: Script
+      options: [statusline.sh, statusline.ps1]
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: System, terminal and Claude Code version
+      placeholder: macOS 15, iTerm2, Claude Code 2.x
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Output on the sample input
+      description: Result of `bash statusline.sh < test.json` (or the PowerShell equivalent) from a checkout of this repository.
+      render: text
