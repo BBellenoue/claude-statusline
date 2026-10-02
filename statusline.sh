@@ -32,12 +32,16 @@ eval "$(jq -r '
 
 # gauge ICON LABEL PCT [SECONDS_LEFT]
 gauge() {
-  local p=$3 left=$4 rgb filled bar="" i line
+  local p=$3 left=$4 rgb filled bar="" i line cell prev=""
   ((p < 0)) && p=0; ((p > 100)) && p=100
   if ((p >= 80)); then rgb='229;83;75'; elif ((p >= 50)); then rgb='230;180;60'; else rgb='63;185;122'; fi
   filled=$(( (p * 12 + 50) / 100 )); ((p > 0 && filled == 0)) && filled=1
-  bar="${E}[38;2;${rgb}m"
-  for ((i = 0; i < 12; i++)); do ((i == filled)) && bar+="${E}[38;2;43;58;85m"; bar+='■'; done
+  for ((i = 0; i < 12; i++)); do
+    if ((i >= filled)); then cell='43;58;85'; elif ((i < 6)); then cell='63;185;122'; elif ((i < 9)); then cell='230;180;60'; else cell='229;83;75'; fi
+    ((i > 0)) && bar+=' '
+    if [[ $cell != "$prev" ]]; then bar+="${E}[38;2;${cell}m"; prev=$cell; fi
+    bar+='■'
+  done
   line="$1 $(printf '%-3s' "$2") $( ((p >= 80)) && printf '💀 ')$bar$R ${E}[38;2;${rgb}m$p%$R"
   if [[ -n $left ]] && ((left > 0)); then
     if ((left >= 86400)); then line+=" $DIM$DOT $((left / 86400))d$((left % 86400 / 3600))h$R"
@@ -57,7 +61,7 @@ if [[ -n $model ]]; then
 fi
 if [[ -n $dir ]]; then
   leaf=${dir//\\//}; leaf=${leaf%/}; leaf=${leaf##*/}
-  parts+=("📁 ${E}[34m${leaf:-$dir}$R")
+  parts+=("📁 ${E}[38;2;97;175;239m${leaf:-$dir}$R")
   branch=$(git -C "$dir" --no-optional-locks rev-parse --abbrev-ref HEAD 2>/dev/null) ||
     branch=$(git -C "$dir" --no-optional-locks symbolic-ref --short HEAD 2>/dev/null)
   if [[ -n $branch ]]; then

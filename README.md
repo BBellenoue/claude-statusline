@@ -5,12 +5,13 @@ context window, session stats and your 5-hour / 7-day usage limits, with colored
 
 ```
 🤖 Opus · high │ 📁 my-project │ 🌿 main ✚3
-🧠 ctx ■■■■■□□□□□□□ 43% · 85k/200k │ +120 -34 │ ⏱ 1h13
-⏳ 5h  ■■■■■■■■□□□□ 63% · 2h41
-📅 7d  💀 ■■■■■■■■■■□□ 87% · 3d4h
+🧠 ctx ■ ■ ■ ■ ■ □ □ □ □ □ □ □ 43% · 85k/200k │ +120 -34 │ ⏱ 1h13
+⏳ 5h  ■ ■ ■ ■ ■ ■ ■ ■ □ □ □ □ 63% · 2h41
+📅 7d  💀 ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ □ □ 87% · 3d4h
 ```
 
-Gauges go green below 50 %, yellow below 80 %, red above (with a skull). The two limit
+Each bar runs green, yellow, red along its length (squares 1 to 6, 7 to 9, 10 to 12). The
+percentage is green below 50 %, yellow below 80 %, red above, with a skull from 80 %. The two limit
 lines only show up on a claude.ai subscription, once Claude Code has received its first
 reply in the session.
 
