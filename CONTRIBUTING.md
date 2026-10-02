@@ -11,6 +11,8 @@ Bug reports and pull requests are welcome.
   compares the result with the `.txt` file and the two scripts with each other. Without `pwsh` on your
   machine the comparison between scripts is skipped, CI runs it on Linux, macOS and Windows.
 - `bash` scripts must pass `shellcheck`, the PowerShell script must pass PSScriptAnalyzer. CI checks both.
+- Commit messages and the pull request text carry no AI attribution (a co-author trailer naming an
+  AI, a "generated with" line). CI refuses them.
 - Keep the scripts quiet: a status line that prints an error is worse than one that prints nothing.
 
 ## The screenshot

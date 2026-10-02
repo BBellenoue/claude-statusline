@@ -4,6 +4,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 
 ## [Unreleased]
 
+### Added
+- CI refuses an AI attribution (a co-author trailer, a "generated with" line) in commit messages and in
+  the pull request title and body.
+
 ### Changed
 - The README screenshot is the real output of the script inside a mock terminal window.
 
