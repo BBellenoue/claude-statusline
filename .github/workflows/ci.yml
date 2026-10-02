@@ -39,3 +39,11 @@ jobs:
           cat sh.out; echo; cat ps.out; echo
           diff <(tail -n +2 sh.out) <(tail -n +2 ps.out)
           grep -q '43%' sh.out && grep -q '7d' sh.out && [ "$(wc -l < sh.out)" -eq 3 ]
+
+      - name: Branch before the first commit
+        if: runner.os != 'Windows'
+        run: |
+          repo=$(mktemp -d)
+          git init -q -b main "$repo"
+          printf '{"cwd":"%s"}' "$repo" | bash statusline.sh | grep -q 'main'
+          printf '{"cwd":"%s"}' "$repo" | pwsh -NoProfile -File statusline.ps1 | grep -q 'main'
