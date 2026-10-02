@@ -58,7 +58,9 @@ fi
 if [[ -n $dir ]]; then
   leaf=${dir//\\//}; leaf=${leaf%/}; leaf=${leaf##*/}
   parts+=("📁 ${E}[34m${leaf:-$dir}$R")
-  if branch=$(git -C "$dir" --no-optional-locks rev-parse --abbrev-ref HEAD 2>/dev/null) && [[ -n $branch ]]; then
+  branch=$(git -C "$dir" --no-optional-locks rev-parse --abbrev-ref HEAD 2>/dev/null) ||
+    branch=$(git -C "$dir" --no-optional-locks symbolic-ref --short HEAD 2>/dev/null)
+  if [[ -n $branch ]]; then
     changed=$(git -C "$dir" --no-optional-locks status --porcelain 2>/dev/null | grep -c .)
     ((changed > 0)) && branch+=" ✚$changed"
     parts+=("🌿 ${E}[32m$branch$R")
