@@ -40,6 +40,12 @@ jobs:
           diff <(tail -n +2 sh.out) <(tail -n +2 ps.out)
           grep -q '43%' sh.out && grep -q '7d' sh.out && [ "$(wc -l < sh.out)" -eq 3 ]
 
+      - name: Bar colors
+        run: |
+          bar=$(printf '\033[38;2;63;185;122m■ ■ ■ ■ ■ ■ \033[38;2;230;180;60m■ ■ ■ \033[38;2;229;83;75m■ \033[38;2;43;58;85m■ ■\033[0m')
+          grep -qF "$bar" sh.out
+          grep -qF "$bar" ps.out
+
       - name: Branch before the first commit
         if: runner.os != 'Windows'
         run: |
