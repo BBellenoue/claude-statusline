@@ -5,9 +5,9 @@ context window, session stats and your 5-hour / 7-day usage limits, with colored
 
 ```
 🤖 Opus · high │ 📁 my-project │ 🌿 main ✚3
-🧠 ctx ■ ■ ■ ■ ■ □ □ □ □ □ □ □ 43% · 85k/200k │ +120 -34 │ ⏱ 1h13
-⏳ 5h  ■ ■ ■ ■ ■ ■ ■ ■ □ □ □ □ 63% · 2h41
-📅 7d  💀 ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ □ □ 87% · 3d4h
+🧠 ctx ◼◼◼◼◼◻◻◻◻◻◻◻ 43% · 85k/200k │ +120 -34 │ ⏱ 1h13
+⏳ 5h  ◼◼◼◼◼◼◼◼◻◻◻◻ 63% · 2h41
+📅 7d  💀 ◼◼◼◼◼◼◼◼◼◼◻◻ 87% · 3d4h
 ```
 
 Each bar runs green, yellow, red along its length (squares 1 to 6, 7 to 9, 10 to 12). The
