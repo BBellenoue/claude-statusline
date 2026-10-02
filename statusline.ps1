@@ -33,7 +33,7 @@ $Sep = " $Esc[90m$([char]0x2502)$Reset "
 
 function Tok($n) { if ($n -ge 1e6) { '{0:0.#}M' -f ($n / 1e6) } elseif ($n -ge 1e3) { '{0:0}k' -f ($n / 1e3) } else { "$n" } }
 
-# Bar of squares (U+25A0) set apart by a space: filled cells green, yellow, red by position, empty ones navy
+# Bar of medium squares (U+25FC): filled cells green, yellow, red by position, empty ones navy
 function Gauge([string]$Icon, [string]$Label, $Pct, $ResetsAt) {
     $P = [math]::Max(0, [math]::Min(100, [math]::Round([double]$Pct)))
     $Rgb = if ($P -ge 80) { '229;83;75' } elseif ($P -ge 50) { '230;180;60' } else { '63;185;122' }
@@ -41,12 +41,11 @@ function Gauge([string]$Icon, [string]$Label, $Pct, $ResetsAt) {
     $Width = 12
     $Filled = [math]::Round($P / 100 * $Width)
     if ($P -gt 0 -and $Filled -eq 0) { $Filled = 1 }
-    $Sq = [string][char]0x25A0
+    $Sq = [string][char]0x25FC
     $Bar = ''
     $Prev = ''
     for ($i = 0; $i -lt $Width; $i++) {
         $Cell = if ($i -ge $Filled) { '43;58;85' } elseif ($i -lt 6) { '63;185;122' } elseif ($i -lt 9) { '230;180;60' } else { '229;83;75' }
-        if ($i -gt 0) { $Bar += ' ' }
         if ($Cell -ne $Prev) { $Bar += "$Esc[38;2;${Cell}m"; $Prev = $Cell }
         $Bar += $Sq
     }

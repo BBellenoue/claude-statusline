@@ -38,9 +38,8 @@ gauge() {
   filled=$(( (p * 12 + 50) / 100 )); ((p > 0 && filled == 0)) && filled=1
   for ((i = 0; i < 12; i++)); do
     if ((i >= filled)); then cell='43;58;85'; elif ((i < 6)); then cell='63;185;122'; elif ((i < 9)); then cell='230;180;60'; else cell='229;83;75'; fi
-    ((i > 0)) && bar+=' '
     if [[ $cell != "$prev" ]]; then bar+="${E}[38;2;${cell}m"; prev=$cell; fi
-    bar+='■'
+    bar+='◼'
   done
   line="$1 $(printf '%-3s' "$2") $( ((p >= 80)) && printf '💀 ')$bar$R ${E}[38;2;${rgb}m$p%$R"
   if [[ -n $left ]] && ((left > 0)); then
